@@ -25,13 +25,13 @@ case $ACTION in
   test)
     echo ">>> Merge dev ke test"
     git checkout test
-    git merge dev --no-ff
+    git merge dev --no-ff --no-edit
     git push origin test
     ;;
   main)
     echo ">>> Merge test ke main"
     git checkout main
-    git merge test --no-ff
+    git merge test --no-ff --no-edit
     git push origin main
     ;;
   *)
