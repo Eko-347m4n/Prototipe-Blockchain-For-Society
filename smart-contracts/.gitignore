@@ -1,0 +1,11 @@
+# Hardhat files
+node_modules/
+artifacts/
+cache/
+coverage/
+coverage.json
+typechain-types/
+
+# Secret files
+.env
+*.log
