@@ -18,12 +18,6 @@ async function main() {
   await layananDukcapil.waitForDeployment();
   console.log(`LayananDukcapil contract deployed to: ${layananDukcapil.target}`);
 
-  console.log("\nDeployment finished!");
-  console.log("Addresses:");
-  console.log(`  NEXT_PUBLIC_IDENTITY_CONTRACT_ADDRESS=${identity.target}`);
-  console.log(`  NEXT_PUBLIC_RBAC_CONTRACT_ADDRESS=${rbac.target}`);
-  console.log(`  NEXT_PUBLIC_DUKCAPIL_CONTRACT_ADDRESS=${layananDukcapil.target}`);
-
   // Deploy LayananPendidikan Contract, linking it to the RBAC contract
   const layananPendidikan = await ethers.deployContract("LayananPendidikan", [rbac.target]);
   await layananPendidikan.waitForDeployment();
@@ -39,6 +33,11 @@ async function main() {
   await layananKesehatan.waitForDeployment();
   console.log(`LayananKesehatan contract deployed to: ${layananKesehatan.target}`);
 
+  console.log("\nDeployment finished!");
+  console.log("Addresses:");
+  console.log(`  NEXT_PUBLIC_IDENTITY_CONTRACT_ADDRESS=${identity.target}`);
+  console.log(`  NEXT_PUBLIC_RBAC_CONTRACT_ADDRESS=${rbac.target}`);
+  console.log(`  NEXT_PUBLIC_DUKCAPIL_CONTRACT_ADDRESS=${layananDukcapil.target}`);
   console.log(`  NEXT_PUBLIC_PENDIDIKAN_CONTRACT_ADDRESS=${layananPendidikan.target}`);
   console.log(`  NEXT_PUBLIC_SOSIAL_CONTRACT_ADDRESS=${layananSosial.target}`);
   console.log(`  NEXT_PUBLIC_KESEHATAN_CONTRACT_ADDRESS=${layananKesehatan.target}`);

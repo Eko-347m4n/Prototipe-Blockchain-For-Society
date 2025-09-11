@@ -3,8 +3,7 @@ import { buildApprovedNamespaces, getSdkError } from '@walletconnect/utils';
 import { SessionTypes } from '@walletconnect/types';
 import { ethers } from 'ethers';
 import { Alert } from 'react-native';
-
-const WALLETCONNECT_PROJECT_ID = '2b7cf7d30c3f53be019f73f09cddaa56'; // <<< REPLACE WITH YOUR PROJECT ID
+import { WALLETCONNECT_PROJECT_ID } from '@env'; // Import from @env
 
 let web3wallet: Web3Wallet | undefined;
 let core: Core | undefined;
