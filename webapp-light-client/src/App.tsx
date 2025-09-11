@@ -1,25 +1,23 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { ethers, BrowserProvider, Contract } from 'ethers';
+import LoginPage from './pages/LoginPage';
+import DashboardPage from './pages/DashboardPage';
 
-// --- Contract ABIs and Addresses ---
-const rbacAbi = [
-  "function ADMIN_ROLE() view returns (bytes32)",
-  "function DUKCAPIL_ROLE() view returns (bytes32)",
-  "function hasRole(bytes32 role, address account) view returns (bool)",
-  "function grantRole(bytes32 role, address account)",
-];
-const identityAbi = [
-    "function registerIdentity(bytes32 identityHash)",
-    "function getIdentity(address wallet) view returns (bytes32)",
-];
-const dukcapilAbi = [
-    "function catatDataBaru(string memory data)",
-    "function lastUpdatedData() view returns (string)",
-];
+// --- ABIs ---
+const rbacAbi = ["function ADMIN_ROLE() view returns (bytes32)","function DUKCAPIL_ROLE() view returns (bytes32)","function PENDIDIKAN_ROLE() view returns (bytes32)","function SOSIAL_ROLE() view returns (bytes32)","function KESEHATAN_ROLE() view returns (bytes32)","function hasRole(bytes32 role, address account) view returns (bool)","function grantRole(bytes32 role, address account)",];
+const identityAbi = ["function registerIdentity(bytes32 identityHash)","function getIdentity(address wallet) view returns (bytes32)",];
+const dukcapilAbi = ["function updateCitizenData(string memory _nik, string memory _data)","function getCitizenData(string memory _nik) view returns (string memory)","function submitApplication(string memory _applicationType, string memory _applicationDetails)","function approveApplication(string memory _applicationId)","function rejectApplication(string memory _applicationId, string memory _reason)","event ApplicationSubmitted(address indexed applicant, string applicationType, string applicationDetails, uint timestamp)","event ApplicationApproved(string indexed applicationId, address indexed approver, uint timestamp)","event ApplicationRejected(string indexed applicationId, string reason, address indexed rejecter, uint timestamp)",];
+const pendidikanAbi = ["function updateAcademicRecord(string memory _studentId, string memory _data)","function getAcademicRecord(string memory _studentId) view returns (string memory)","function submitApplication(string memory _applicationType, string memory _applicationDetails)","function approveApplication(string memory _applicationId)","function rejectApplication(string memory _applicationId, string memory _reason)","event ApplicationSubmitted(address indexed applicant, string applicationType, string applicationDetails, uint timestamp)","event ApplicationApproved(string indexed applicationId, address indexed approver, uint timestamp)","event ApplicationRejected(string indexed applicationId, string reason, address indexed rejecter, uint timestamp)",];
+const sosialAbi = ["function recordAidDistribution(string memory _beneficiaryId, string memory _data)","function getAidDistribution(string memory _beneficiaryId) view returns (string memory)","function submitApplication(string memory _applicationType, string memory _applicationDetails)","function approveApplication(string memory _applicationId)","function rejectApplication(string memory _applicationId, string memory _reason)","event ApplicationSubmitted(address indexed applicant, string applicationType, string applicationDetails, uint timestamp)","event ApplicationApproved(string indexed applicationId, address indexed approver, uint timestamp)","event ApplicationRejected(string indexed applicationId, string reason, address indexed rejecter, uint timestamp)",];
+const kesehatanAbi = ["function recordBPJSValidation(string memory _bpjsId, string memory _data)","function getBPJSValidation(string memory _bpjsId) view returns (string memory)","function submitApplication(string memory _applicationType, string memory _applicationDetails)","function approveApplication(string memory _applicationId)","function rejectApplication(string memory _applicationId, string memory _reason)","event ApplicationSubmitted(address indexed applicant, string applicationType, string applicationDetails, uint timestamp)","event ApplicationApproved(string indexed applicationId, address indexed approver, uint timestamp)","event ApplicationRejected(string indexed applicationId, string reason, address indexed rejecter, uint timestamp)",];
 
+// --- Contract Addresses & Constants ---
 const rbacContractAddress = import.meta.env.VITE_RBAC_CONTRACT_ADDRESS;
 const identityContractAddress = import.meta.env.VITE_IDENTITY_CONTRACT_ADDRESS;
 const dukcapilContractAddress = import.meta.env.VITE_DUKCAPIL_CONTRACT_ADDRESS;
+const pendidikanContractAddress = import.meta.env.VITE_PENDIDIKAN_CONTRACT_ADDRESS;
+const sosialContractAddress = import.meta.env.VITE_SOSIAL_CONTRACT_ADDRESS;
+const kesehatanContractAddress = import.meta.env.VITE_KESEHATAN_CONTRACT_ADDRESS;
 const HARDHAT_CHAIN_ID = 31337;
 
 // --- Type Definitions ---
@@ -29,141 +27,37 @@ declare global {
   }
 }
 
-interface PanelProps {
-  provider: BrowserProvider;
-  userAddress: string;
-  rbacContract?: Contract;
-  identityContract?: Contract;
-  dukcapilContract?: Contract;
-}
-
-// --- Panel Components ---
-const AdminPanel = ({ provider, rbacContract }: Pick<PanelProps, 'provider' | 'rbacContract'>) => {
-  const [address, setAddress] = useState('');
-  const [role, setRole] = useState('');
-  const [status, setStatus] = useState('');
-
-  const handleGrantRole = async () => {
-    if (!address || !role || !rbacContract) return;
-    setStatus('Sending transaction...');
-    try {
-      const signer = await provider.getSigner();
-      const rbacWithSigner = rbacContract.connect(signer);
-      const tx = await rbacWithSigner.grantRole(role, address);
-      await tx.wait();
-      setStatus(`Role granted successfully!`);
-    } catch (e) { setStatus(`Error: ${(e as Error).message}`); }
-  };
-
-  useEffect(() => {
-    const getRole = async () => rbacContract && setRole(await rbacContract.DUKCAPIL_ROLE());
-    getRole();
-  }, [rbacContract]);
-
-  return (
-    <div style={{ border: '1px solid blue', padding: '10px', marginTop: '20px' }}>
-      <h3>Admin Panel</h3>
-      <div><label>Address: </label><input type="text" value={address} onChange={(e) => setAddress(e.target.value)} style={{ width: '400px' }} /></div>
-      <div style={{ marginTop: '10px' }}><label>Role: </label><input type="text" value={role} readOnly style={{ width: '400px' }} /></div>
-      <button onClick={handleGrantRole} style={{ marginTop: '10px' }}>Grant Role</button>
-      {status && <p>{status}</p>}
-    </div>
-  );
-};
-
-const IdentityPanel = ({ provider, identityContract, userAddress }: Pick<PanelProps, 'provider' | 'identityContract' | 'userAddress'>) => {
-    const [nik, setNik] = useState('');
-    const [status, setStatus] = useState('');
-    const [registeredHash, setRegisteredHash] = useState<string | null>(null);
-
-    useEffect(() => {
-        const check = async () => {
-            if (!identityContract || !userAddress) return;
-            const hash = await identityContract.getIdentity(userAddress);
-            if (hash !== ethers.ZeroHash) setRegisteredHash(hash);
-        };
-        check();
-    }, [identityContract, userAddress]);
-
-    const handleRegister = async () => {
-        if (!nik || !identityContract) return;
-        setStatus('Sending transaction...');
-        try {
-            const nikHash = ethers.keccak256(ethers.toUtf8Bytes(nik));
-            const signer = await provider.getSigner();
-            const contractWithSigner = identityContract.connect(signer);
-            const tx = await contractWithSigner.registerIdentity(nikHash);
-            await tx.wait();
-            setStatus(`Identity registered successfully!`);
-            setRegisteredHash(nikHash);
-        } catch (e) { setStatus(`Error: ${(e as Error).message}`); }
-    };
-
-    if (registeredHash) return <p>Your identity hash: {registeredHash}</p>;
-
-    return (
-        <div style={{ border: '1px solid orange', padding: '10px', marginTop: '20px' }}>
-            <h3>Register Your Identity</h3>
-            <div><label>NIK: </label><input type="text" value={nik} onChange={(e) => setNik(e.target.value)} /></div>
-            <button onClick={handleRegister} style={{ marginTop: '10px' }}>Register Identity</button>
-            {status && <p>{status}</p>}
-        </div>
-    );
-};
-
-const DukcapilPanel = ({ provider, dukcapilContract }: Pick<PanelProps, 'provider' | 'dukcapilContract'>) => {
-    const [data, setData] = useState('');
-    const [status, setStatus] = useState('');
-    const [lastData, setLastData] = useState('');
-
-    useEffect(() => {
-        const getLastData = async () => dukcapilContract && setLastData(await dukcapilContract.lastUpdatedData());
-        getLastData();
-    }, [dukcapilContract]);
-
-    const handleCatatData = async () => {
-        if (!data || !dukcapilContract) return;
-        setStatus('Sending transaction...');
-        try {
-            const signer = await provider.getSigner();
-            const contractWithSigner = dukcapilContract.connect(signer);
-            const tx = await contractWithSigner.catatDataBaru(data);
-            await tx.wait();
-            setStatus(`Data recorded successfully!`);
-            setLastData(data);
-        } catch (e) { setStatus(`Error: ${(e as Error).message}`); }
-    };
-
-    return (
-        <div style={{ border: '1px solid purple', padding: '10px', marginTop: '20px' }}>
-            <h3>Dukcapil Officer Panel</h3>
-            <p>Last recorded data: <strong>{lastData || "N/A"}</strong></p>
-            <div><label>New Data: </label><input type="text" value={data} onChange={(e) => setData(e.target.value)} /></div>
-            <button onClick={handleCatatData} style={{ marginTop: '10px' }}>Record New Data</button>
-            {status && <p>{status}</p>}
-        </div>
-    );
-};
-
-// --- Main App Component ---
 function App() {
   const [account, setAccount] = useState<string | null>(null);
   const [provider, setProvider] = useState<BrowserProvider | null>(null);
+  const [userRoles, setUserRoles] = useState({ isAdmin: false, isDukcapil: false, isPendidikan: false, isSosial: false, isKesehatan: false });
+  const [isCorrectNetwork, setIsCorrectNetwork] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Contract states
   const [rbacContract, setRbacContract] = useState<Contract | null>(null);
   const [identityContract, setIdentityContract] = useState<Contract | null>(null);
   const [dukcapilContract, setDukcapilContract] = useState<Contract | null>(null);
-  const [userRoles, setUserRoles] = useState({ isAdmin: false, isDukcapil: false });
-  const [isCorrectNetwork, setIsCorrectNetwork] = useState<boolean>(false);
+  const [pendidikanContract, setPendidikanContract] = useState<Contract | null>(null);
+  const [sosialContract, setSosialContract] = useState<Contract | null>(null);
+  const [kesehatanContract, setKesehatanContract] = useState<Contract | null>(null);
 
   const connectWallet = async () => {
     if (!window.ethereum) return alert('Please install MetaMask!');
+    setIsLoading(true);
     try {
       const p = new ethers.BrowserProvider(window.ethereum);
       const accs = await p.send("eth_requestAccounts", []);
-      setAccount(accs[0]);
-      setProvider(p);
-      checkNetwork(p);
-    } catch (e) { console.error("Could not connect wallet", e); }
+      if (accs.length > 0) {
+        setAccount(accs[0]);
+        setProvider(p);
+        await initializeContracts(p);
+      }
+    } catch (e) { 
+      console.error("Could not connect wallet", e); 
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const checkNetwork = async (p: BrowserProvider) => {
@@ -173,61 +67,112 @@ function App() {
     return correct;
   };
 
+  const initializeContracts = useCallback(async (p: BrowserProvider) => {
+    if (await checkNetwork(p)) {
+      setRbacContract(new ethers.Contract(rbacContractAddress, rbacAbi, p));
+      setIdentityContract(new ethers.Contract(identityContractAddress, identityAbi, p));
+      setDukcapilContract(new ethers.Contract(dukcapilContractAddress, dukcapilAbi, p));
+      setPendidikanContract(new ethers.Contract(pendidikanContractAddress, pendidikanAbi, p));
+      setSosialContract(new ethers.Contract(sosialContractAddress, sosialAbi, p));
+      setKesehatanContract(new ethers.Contract(kesehatanContractAddress, kesehatanAbi, p));
+    }
+  });
+
   useEffect(() => {
     const initialize = async () => {
-      if (!window.ethereum) return;
-      const p = new ethers.BrowserProvider(window.ethereum);
-      setProvider(p);
-      const accs = await p.listAccounts();
-      if (accs.length > 0) setAccount(accs[0].address);
-
-      if (await checkNetwork(p)) {
-        setRbacContract(new ethers.Contract(rbacContractAddress, rbacAbi, p));
-        setIdentityContract(new ethers.Contract(identityContractAddress, identityAbi, p));
-        setDukcapilContract(new ethers.Contract(dukcapilContractAddress, dukcapilAbi, p));
+      if (window.ethereum) {
+        const p = new ethers.BrowserProvider(window.ethereum);
+        setProvider(p);
+        const accs = await p.listAccounts();
+        if (accs.length > 0) {
+          setAccount(accs[0].address);
+          await initializeContracts(p);
+        }
       }
+      setIsLoading(false);
     };
     initialize();
-    window.ethereum.on('chainChanged', () => window.location.reload());
-    window.ethereum.on('accountsChanged', () => window.location.reload());
-  }, []);
+    window.ethereum?.on('chainChanged', () => window.location.reload());
+    window.ethereum?.on('accountsChanged', () => window.location.reload());
+  }, [initializeContracts]);
 
   useEffect(() => {
     const checkUserRoles = async () => {
       if (!account || !rbacContract) return;
+      setIsLoading(true);
       try {
-        const adminRole = await rbacContract.ADMIN_ROLE();
-        const dukcapilRole = await rbacContract.DUKCAPIL_ROLE();
-        const isAdmin = await rbacContract.hasRole(adminRole, account);
-        const isDukcapil = await rbacContract.hasRole(dukcapilRole, account);
-        setUserRoles({ isAdmin, isDukcapil });
-      } catch (e) { console.error("Could not check user roles", e); }
+        const [adminRole, dukcapilRole, pendidikanRole, sosialRole, kesehatanRole] = await Promise.all([
+          rbacContract.ADMIN_ROLE(),
+          rbacContract.DUKCAPIL_ROLE(),
+          rbacContract.PENDIDIKAN_ROLE(),
+          rbacContract.SOSIAL_ROLE(),
+          rbacContract.KESEHATAN_ROLE(),
+        ]);
+        const [isAdmin, isDukcapil, isPendidikan, isSosial, isKesehatan] = await Promise.all([
+          rbacContract.hasRole(adminRole, account),
+          rbacContract.hasRole(dukcapilRole, account),
+          rbacContract.hasRole(pendidikanRole, account),
+          rbacContract.hasRole(sosialRole, account),
+          rbacContract.hasRole(kesehatanRole, account),
+        ]);
+        setUserRoles({ isAdmin, isDukcapil, isPendidikan, isSosial, isKesehatan });
+      } catch (e) { 
+        console.error("Could not check user roles", e); 
+      } finally {
+        setIsLoading(false);
+      }
     };
     checkUserRoles();
   }, [account, rbacContract]);
-
-  const renderUserPanel = () => {
-    if (!provider) return null;
-    if (userRoles.isAdmin) return <AdminPanel provider={provider} rbacContract={rbacContract!} />;
-    if (userRoles.isDukcapil) return <DukcapilPanel provider={provider} dukcapilContract={dukcapilContract!} />;
-    return <IdentityPanel provider={provider} identityContract={identityContract!} userAddress={account!} />;
+  
+  const handleLogout = () => {
+    setAccount(null);
+    setUserRoles({ isAdmin: false, isDukcapil: false, isPendidikan: false, isSosial: false, isKesehatan: false });
+    setRbacContract(null);
+    setIdentityContract(null);
+    setDukcapilContract(null);
+    setPendidikanContract(null);
+    setSosialContract(null);
+    setKesehatanContract(null);
   }
 
   return (
-    <div style={{ padding: '20px', fontFamily: 'sans-serif' }}>
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h1>Prototipe Web3 Kabupaten</h1>
-        {account ? <p>Connected: {`${account.substring(0, 6)}...`}</p> : <button onClick={connectWallet}>Connect Wallet</button>}
-      </header>
-      <hr />
-      <main>
-        {!isCorrectNetwork ? (
-          <div style={{color: 'red'}}><p><strong>Wrong Network!</strong> Please connect to Hardhat (Chain ID: {HARDHAT_CHAIN_ID}).</p></div>
+    <>
+      <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div className="container">
+          <a className="navbar-brand" href="#">Prototipe Web3 Kabupaten</a>
+          {account && (
+            <div className="d-flex align-items-center">
+              <span className="navbar-text me-3">
+                Connected: {`${account.substring(0, 6)}...${account.substring(account.length - 4)}`}
+              </span>
+              <button className="btn btn-outline-light" onClick={handleLogout}>Disconnect</button>
+            </div>
+          )}
+        </div>
+      </nav>
+      <main className="container mt-4">
+        {!account ? (
+          <LoginPage connectWallet={connectWallet} isLoading={isLoading} />
+        ) : !isCorrectNetwork ? (
+          <div className="alert alert-danger"><strong>Wrong Network!</strong> Please connect to the Hardhat network (Chain ID: {HARDHAT_CHAIN_ID}).</div>
+        ) : isLoading ? (
+          <p>Loading user data...</p>
         ) : (
-          <div>{account ? renderUserPanel() : <p>Please connect your wallet to continue.</p>}</div>
+          <DashboardPage 
+            provider={provider!}
+            account={account}
+            userRoles={userRoles}
+            rbacContract={rbacContract!}
+            identityContract={identityContract!}
+            dukcapilContract={dukcapilContract!}
+            pendidikanContract={pendidikanContract!}
+            sosialContract={sosialContract!}
+            kesehatanContract={kesehatanContract!}
+          />
         )}
       </main>
-    </div>
+    </>
   );
 }
 

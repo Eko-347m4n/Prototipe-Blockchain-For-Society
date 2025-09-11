@@ -24,6 +24,25 @@ async function main() {
   console.log(`  NEXT_PUBLIC_RBAC_CONTRACT_ADDRESS=${rbac.target}`);
   console.log(`  NEXT_PUBLIC_DUKCAPIL_CONTRACT_ADDRESS=${layananDukcapil.target}`);
 
+  // Deploy LayananPendidikan Contract, linking it to the RBAC contract
+  const layananPendidikan = await ethers.deployContract("LayananPendidikan", [rbac.target]);
+  await layananPendidikan.waitForDeployment();
+  console.log(`LayananPendidikan contract deployed to: ${layananPendidikan.target}`);
+
+  // Deploy LayananSosial Contract, linking it to the RBAC contract
+  const layananSosial = await ethers.deployContract("LayananSosial", [rbac.target]);
+  await layananSosial.waitForDeployment();
+  console.log(`LayananSosial contract deployed to: ${layananSosial.target}`);
+
+  // Deploy LayananKesehatan Contract, linking it to the RBAC contract
+  const layananKesehatan = await ethers.deployContract("LayananKesehatan", [rbac.target]);
+  await layananKesehatan.waitForDeployment();
+  console.log(`LayananKesehatan contract deployed to: ${layananKesehatan.target}`);
+
+  console.log(`  NEXT_PUBLIC_PENDIDIKAN_CONTRACT_ADDRESS=${layananPendidikan.target}`);
+  console.log(`  NEXT_PUBLIC_SOSIAL_CONTRACT_ADDRESS=${layananSosial.target}`);
+  console.log(`  NEXT_PUBLIC_KESEHATAN_CONTRACT_ADDRESS=${layananKesehatan.target}`);
+
 }
 
 main().catch((error) => {
