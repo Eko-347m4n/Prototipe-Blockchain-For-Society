@@ -1,0 +1,90 @@
+{
+  "project": "Prototipe Web3 Kabupaten",
+  "tech_stack": {
+    "wallet_mobile_apps": "React Native",
+    "smart_contract": "Ethereum Sepolia (Solidity)",
+    "webapps_light_client": "React.js",
+    "library_web3": ["ethers.js", "web3.js"],
+    "wallet_connectivity": ["WalletConnect", "Deep Linking", "In-App Browser", "Embedded WebView"]
+  },
+  "components": {
+    "1_wallet_mobile_apps": {
+      "description": "Aplikasi mobile sebagai identitas digital & signer transaksi",
+      "tasks": [
+        "Registrasi warga (NIK, nama, tanggal lahir, alamat, nomor HP/email → generate wallet).",
+        "Registrasi petugas dinas/kecamatan/desa (NIP/ID, jabatan, unit kerja, nomor HP/email → generate wallet).",
+        "Generate & simpan private key secara lokal (local storage/secure enclave di HP, bukan server).",
+        "Fitur tanda tangan transaksi (approve permohonan, submit data, revoke/grant role).",
+        "Fitur keamanan (PIN, biometrik).",
+        "Untuk warga umum → gunakan Deep Linking/In-App Browser agar portal terbuka langsung di wallet mobile, tanpa QR scan.",
+        "Untuk petugas/admin → gunakan embedded WebView dalam aplikasi wallet React Native, sehingga portal dapat berjalan di dalam wallet dan transaksi ditandatangani tanpa switch aplikasi."
+      ]
+    },
+    "2_smart_contract": {
+      "description": "Smart contract untuk otorisasi & layanan publik",
+      "tasks": [
+        "Smart Contract Identitas → mapping wallet dengan NIK/NIP.",
+        "Smart Contract RBAC → grant/revoke role petugas dinas/kecamatan/desa.",
+        "Smart Contract Layanan per dinas:",
+        " - Dukcapil → data kependudukan.",
+        " - Pendidikan → layanan sekolah.",
+        " - Sosial → distribusi bantuan/hibah.",
+        " - Kesehatan → validasi BPJS.",
+        "Event log untuk rotasi jabatan (grant/revoke role)."
+      ]
+    },
+    "3_webapps_light_client": {
+      "description": "Portal React.js sebagai antarmuka satu pintu kabupaten",
+      "tasks": [
+        "Implementasi login dengan wallet (metode disesuaikan dengan mode user).",
+        "Dashboard warga → ajukan permohonan, cek status transaksi.",
+        "Dashboard petugas → approve/reject permohonan, update data warga.",
+        "Dashboard admin kabupaten → grant/revoke role petugas, monitor transaksi lintas dinas.",
+        "Integrasi dengan blockchain via RPC dari node penuh kabupaten/dinas (light client).",
+        "Webapp tidak menyimpan ledger penuh, hanya query state blockchain."
+      ]
+    },
+    "4_blockchain_infrastructure": {
+      "description": "Infrastruktur blockchain sebagai backbone sistem",
+      "tasks": [
+        "Gunakan Ethereum Sepolia testnet (atau Polygon Mumbai / jaringan privat untuk skala lanjut).",
+        "Full Node (validator/miner) dijalankan di server kabupaten & beberapa dinas.",
+        "Non-mining Full Node dijalankan di lembaga pengawas/LSM.",
+        "Webapps = light client (akses via RPC, tidak sync penuh).",
+        "Mobile Wallet = signer saja, tidak ikut sync blockchain."
+      ]
+    },
+    "5_alur_kerja": {
+      "registrasi": [
+        "Warga → mobile wallet (NIK, data diri).",
+        "Petugas → mobile wallet (NIP + role dari admin via smart contract)."
+      ],
+      "login_transaksi": [
+        "Warga umum → buka portal melalui Deep Linking/In-App Browser dari wallet mobile.",
+        "Petugas/admin → buka portal melalui embedded WebView di wallet React Native.",
+        "User isi form/permohonan → portal membuat draft transaksi → wallet meminta tanda tangan.",
+        "User setujui transaksi via PIN/biometrik → transaksi terekam di blockchain."
+      ],
+      "validasi_approval": [
+        "Petugas login via wallet.",
+        "Approve/Reject permohonan sesuai role.",
+        "Semua transaksi ditandatangani dan dicatat di blockchain."
+      ],
+      "rotasi_jabatan": [
+        "Admin kabupaten via portal → revokeRole wallet lama, grantRole wallet baru.",
+        "Event log tersimpan di blockchain."
+      ],
+      "pencatatan_permanen": [
+        "Semua perubahan role & layanan tercatat immutable di blockchain.",
+        "Webapps membaca state blockchain via RPC."
+      ]
+    },
+    "6_deliverables": {
+      "mobile_wallet_app": "React Native app untuk warga & petugas (register, tanda tangan transaksi, embedded portal).",
+      "webapps_portal": "React.js light client untuk dashboard layanan & integrasi dinas.",
+      "smart_contracts": "Solidity contracts untuk identitas, RBAC, dan layanan dinas.",
+      "blockchain_infra": "Full node + RPC infra di kabupaten/dinas, light client via webapp.",
+      "dokumentasi": "Alur kerja, flowchart, activity/sequence diagram, serta demo prototipe."
+    }
+  }
+}
