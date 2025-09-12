@@ -18,7 +18,7 @@ const dukcapilContractAddress = import.meta.env.VITE_DUKCAPIL_CONTRACT_ADDRESS;
 const pendidikanContractAddress = import.meta.env.VITE_PENDIDIKAN_CONTRACT_ADDRESS;
 const sosialContractAddress = import.meta.env.VITE_SOSIAL_CONTRACT_ADDRESS;
 const kesehatanContractAddress = import.meta.env.VITE_KESEHATAN_CONTRACT_ADDRESS;
-const HARDHAT_CHAIN_ID = 31337;
+const GOCHAIN_TESTNET_CHAIN_ID = 31337;
 
 // --- Type Definitions ---
 declare global {
@@ -42,11 +42,35 @@ function App() {
   const [sosialContract, setSosialContract] = useState<Contract | null>(null);
   const [kesehatanContract, setKesehatanContract] = useState<Contract | null>(null);
 
+  const handleLogout = () => {
+    setAccount(null);
+    setProvider(null);
+    setUserRoles({ isAdmin: false, isDukcapil: false, isPendidikan: false, isSosial: false, isKesehatan: false });
+    setRbacContract(null);
+    setIdentityContract(null);
+    setDukcapilContract(null);
+    setPendidikanContract(null);
+    setSosialContract(null);
+    setKesehatanContract(null);
+    setIsCorrectNetwork(false);
+  };
+
   const connectWallet = async () => {
     if (!window.ethereum) return alert('Please install MetaMask!');
     setIsLoading(true);
     try {
       const p = new ethers.BrowserProvider(window.ethereum);
+      
+      try {
+        // This EIP-2255 method prompts the user to select accounts and grant permissions.
+        // It's a good way to force the account selection dialog.
+        await p.send("wallet_requestPermissions", [{ eth_accounts: {} }]);
+      } catch (error) {
+        // Some wallets may not support this method, or the user may deny permission.
+        // We'll log the error and continue, as eth_requestAccounts will still work as a fallback.
+        console.log("wallet_requestPermissions was rejected or is not supported:", error);
+      }
+
       const accs = await p.send("eth_requestAccounts", []);
       if (accs.length > 0) {
         setAccount(accs[0]);
@@ -62,7 +86,7 @@ function App() {
 
   const checkNetwork = async (p: BrowserProvider) => {
     const network = await p.getNetwork();
-    const correct = network.chainId === BigInt(HARDHAT_CHAIN_ID);
+    const correct = network.chainId === BigInt(GOCHAIN_TESTNET_CHAIN_ID);
     setIsCorrectNetwork(correct);
     return correct;
   };
@@ -76,24 +100,39 @@ function App() {
       setSosialContract(new ethers.Contract(sosialContractAddress, sosialAbi, p));
       setKesehatanContract(new ethers.Contract(kesehatanContractAddress, kesehatanAbi, p));
     }
-  });
+  }, []);
 
   useEffect(() => {
+    const handleAccountsChanged = (accounts: string[]) => {
+      if (accounts.length === 0) {
+        handleLogout();
+      } else {
+        window.location.reload();
+      }
+    };
+
     const initialize = async () => {
       if (window.ethereum) {
         const p = new ethers.BrowserProvider(window.ethereum);
-        setProvider(p);
         const accs = await p.listAccounts();
         if (accs.length > 0) {
           setAccount(accs[0].address);
+          setProvider(p);
           await initializeContracts(p);
         }
       }
       setIsLoading(false);
     };
+
     initialize();
+
     window.ethereum?.on('chainChanged', () => window.location.reload());
-    window.ethereum?.on('accountsChanged', () => window.location.reload());
+    window.ethereum?.on('accountsChanged', handleAccountsChanged);
+
+    return () => {
+      window.ethereum?.removeListener('chainChanged', () => window.location.reload());
+      window.ethereum?.removeListener('accountsChanged', handleAccountsChanged);
+    }
   }, [initializeContracts]);
 
   useEffect(() => {
@@ -124,17 +163,6 @@ function App() {
     };
     checkUserRoles();
   }, [account, rbacContract]);
-  
-  const handleLogout = () => {
-    setAccount(null);
-    setUserRoles({ isAdmin: false, isDukcapil: false, isPendidikan: false, isSosial: false, isKesehatan: false });
-    setRbacContract(null);
-    setIdentityContract(null);
-    setDukcapilContract(null);
-    setPendidikanContract(null);
-    setSosialContract(null);
-    setKesehatanContract(null);
-  }
 
   return (
     <>
@@ -155,7 +183,7 @@ function App() {
         {!account ? (
           <LoginPage connectWallet={connectWallet} isLoading={isLoading} />
         ) : !isCorrectNetwork ? (
-          <div className="alert alert-danger"><strong>Wrong Network!</strong> Please connect to the Hardhat network (Chain ID: {HARDHAT_CHAIN_ID}).</div>
+          <div className="alert alert-danger"><strong>Wrong Network!</strong> Please connect to the GoChain Testnet network (Chain ID: {GOCHAIN_TESTNET_CHAIN_ID}).</div>
         ) : isLoading ? (
           <p>Loading user data...</p>
         ) : (

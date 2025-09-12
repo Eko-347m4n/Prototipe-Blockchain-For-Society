@@ -34,13 +34,15 @@ async function main() {
   console.log(`LayananKesehatan contract deployed to: ${layananKesehatan.target}`);
 
   console.log("\nDeployment finished!");
-  console.log("Addresses:");
-  console.log(`  NEXT_PUBLIC_IDENTITY_CONTRACT_ADDRESS=${identity.target}`);
-  console.log(`  NEXT_PUBLIC_RBAC_CONTRACT_ADDRESS=${rbac.target}`);
-  console.log(`  NEXT_PUBLIC_DUKCAPIL_CONTRACT_ADDRESS=${layananDukcapil.target}`);
-  console.log(`  NEXT_PUBLIC_PENDIDIKAN_CONTRACT_ADDRESS=${layananPendidikan.target}`);
-  console.log(`  NEXT_PUBLIC_SOSIAL_CONTRACT_ADDRESS=${layananSosial.target}`);
-  console.log(`  NEXT_PUBLIC_KESEHATAN_CONTRACT_ADDRESS=${layananKesehatan.target}`);
+  console.log("Please copy the following into the .env file in the webapp-light-client directory:");
+  console.log("----------------------------------------------------\n");
+  console.log(`VITE_IDENTITY_CONTRACT_ADDRESS=${identity.target}`);
+  console.log(`VITE_RBAC_CONTRACT_ADDRESS=${rbac.target}`);
+  console.log(`VITE_DUKCAPIL_CONTRACT_ADDRESS=${layananDukcapil.target}`);
+  console.log(`VITE_PENDIDIKAN_CONTRACT_ADDRESS=${layananPendidikan.target}`);
+  console.log(`VITE_SOSIAL_CONTRACT_ADDRESS=${layananSosial.target}`);
+  console.log(`VITE_KESEHATAN_CONTRACT_ADDRESS=${layananKesehatan.target}`);
+  console.log("----------------------------------------------------\n");
 
 }
 

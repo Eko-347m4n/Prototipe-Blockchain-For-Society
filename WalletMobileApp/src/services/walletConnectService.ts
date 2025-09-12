@@ -10,12 +10,7 @@ let core: Core | undefined;
 
 export const initWalletConnect = async (onSessionProposal: (proposal: SessionTypes.Proposal) => void, onSessionRequest: (request: SessionTypes.Request) => void) => {
     try {
-        core = new Core({
-            projectId: WALLETCONNECT_PROJECT_ID,
-        });
-
         web3wallet = await Web3Wallet.init({
-            core,
             projectId: WALLETCONNECT_PROJECT_ID,
             metadata: {
                 name: 'Prototipe Web3 Kabupaten Wallet',
@@ -24,6 +19,7 @@ export const initWalletConnect = async (onSessionProposal: (proposal: SessionTyp
                 icons: ['https://walletconnect.com/walletconnect-logo.png'],
             },
         });
+        core = web3wallet.core;
 
         web3wallet.on('session_proposal', onSessionProposal);
         web3wallet.on('session_request', onSessionRequest);

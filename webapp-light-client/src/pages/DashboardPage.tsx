@@ -35,7 +35,15 @@ const DashboardPage: React.FC<DashboardPageProps> = (props) => {
   if (userRoles.isSosial) return <OfficerPanel provider={provider} contract={sosialContract} title="Sosial Officer Panel" actionName="recordAidDistribution" fieldName="Beneficiary ID" />;
   if (userRoles.isKesehatan) return <OfficerPanel provider={provider} contract={kesehatanContract} title="Kesehatan Officer Panel" actionName="recordBPJSValidation" fieldName="BPJS ID" />;
   
-  return <CitizenDashboard provider={provider} identityContract={identityContract} userAddress={account} dukcapilContract={dukcapilContract} />;
+  return <CitizenDashboard 
+            provider={provider} 
+            identityContract={identityContract} 
+            userAddress={account} 
+            dukcapilContract={dukcapilContract}
+            pendidikanContract={pendidikanContract}
+            sosialContract={sosialContract}
+            kesehatanContract={kesehatanContract}
+          />;
 };
 
 export default DashboardPage;
