@@ -9,13 +9,25 @@ interface CitizenDashboardProps {
     identityContract?: Contract;
     userAddress: string;
     dukcapilContract?: Contract;
+    pendidikanContract?: Contract;
+    sosialContract?: Contract;
+    kesehatanContract?: Contract;
 }
 
-const CitizenDashboard = ({ provider, identityContract, userAddress, dukcapilContract }: CitizenDashboardProps) => {
+const services = {
+    dukcapil: { name: 'Dukcapil', contract: 'dukcapilContract' },
+    pendidikan: { name: 'Pendidikan', contract: 'pendidikanContract' },
+    sosial: { name: 'Sosial', contract: 'sosialContract' },
+    kesehatan: { name: 'Kesehatan', contract: 'kesehatanContract' },
+};
+
+const CitizenDashboard = (props: CitizenDashboardProps) => {
+  const { provider, identityContract, userAddress } = props;
   const [applicationType, setApplicationType] = useState('');
   const [applicationDetails, setApplicationDetails] = useState('');
   const [status, setStatus] = useState('');
   const [registeredHash, setRegisteredHash] = useState<string | null>(null);
+  const [selectedService, setSelectedService] = useState<keyof typeof services>('dukcapil');
 
   useEffect(() => {
     const check = async () => {
@@ -27,11 +39,15 @@ const CitizenDashboard = ({ provider, identityContract, userAddress, dukcapilCon
   }, [identityContract, userAddress]);
 
   const handleSubmitApplication = async () => {
-    if (!applicationType || !applicationDetails || !dukcapilContract) return;
+    const serviceInfo = services[selectedService];
+    const contract = props[serviceInfo.contract as keyof CitizenDashboardProps] as Contract | undefined;
+
+    if (!applicationType || !applicationDetails || !contract) return;
+    
     setStatus('Submitting application...');
     try {
       const signer = await provider.getSigner();
-      const contractWithSigner = dukcapilContract.connect(signer);
+      const contractWithSigner = contract.connect(signer);
       const tx = await contractWithSigner.submitApplication(applicationType, applicationDetails);
       await tx.wait();
       setStatus(`Application submitted successfully! Tx Hash: ${tx.hash}`);
@@ -47,6 +63,14 @@ const CitizenDashboard = ({ provider, identityContract, userAddress, dukcapilCon
       <p className="mb-3">Welcome! Your identity hash is: <small className="text-muted">{registeredHash}</small></p>
       <hr />
       <h5>Submit New Application</h5>
+      <div className="mb-3">
+        <label htmlFor="serviceSelect" className="form-label">Service</label>
+        <select id="serviceSelect" className="form-select" value={selectedService} onChange={(e) => setSelectedService(e.target.value as keyof typeof services)}>
+            {Object.entries(services).map(([key, { name }]) => (
+                <option key={key} value={key}>{name}</option>
+            ))}
+        </select>
+      </div>
       <div className="mb-3">
         <label htmlFor="appType" className="form-label">Application Type</label>
         <input id="appType" type="text" className="form-control" value={applicationType} onChange={(e) => setApplicationType(e.target.value)} placeholder="e.g., KTP Renewal" />

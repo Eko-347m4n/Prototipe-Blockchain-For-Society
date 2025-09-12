@@ -12,7 +12,6 @@ export const isWalletRegistered = async (walletAddress: string) => {
         console.log("IDENTITY_CONTRACT_ABI:", IDENTITY_CONTRACT_ABI);
         const identityContract = new ethers.Contract(IDENTITY_CONTRACT_ADDRESS, IDENTITY_CONTRACT_ABI, provider);
         console.log("Identity Contract Instance:", identityContract);
-        const identityContract = new ethers.Contract(IDENTITY_CONTRACT_ADDRESS, IDENTITY_CONTRACT_ABI, provider);
         const registered = await identityContract.isRegistered(walletAddress);
         return registered;
     } catch (e) {
