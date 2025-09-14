@@ -21,8 +21,10 @@ const ApplicationReviewList = ({ provider, contract, contractName }: Application
     const [loading, setLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState<string | null>(null);
     const { addToast } = useToast();
+    
+    // State for inline rejection
+    const [rejectingAppId, setRejectingAppId] = useState<string | null>(null);
     const [rejectionReason, setRejectionReason] = useState('');
-    const [selectedApp, setSelectedApp] = useState<Application | null>(null);
 
     const fetchApplications = useCallback(async () => {
         if (!contract) return;
@@ -78,25 +80,44 @@ const ApplicationReviewList = ({ provider, contract, contractName }: Application
     };
 
     const handleReject = async () => {
-        if (!contract || !selectedApp || !rejectionReason) return;
-        setActionLoading(selectedApp.id);
+        if (!contract || !rejectingAppId || !rejectionReason) return;
+        setActionLoading(rejectingAppId);
         try {
             const signer = await provider.getSigner();
             const contractWithSigner = contract.connect(signer);
-            const tx = await contractWithSigner.rejectApplication(selectedApp.id, rejectionReason);
+            const tx = await contractWithSigner.rejectApplication(rejectingAppId, rejectionReason);
             await tx.wait();
-            addToast(`Application ${selectedApp.id} rejected!`, 'success');
+            addToast(`Application ${rejectingAppId} rejected!`, 'success');
             fetchApplications(); // Refresh list
         } catch (e) {
             addToast(`Error rejecting application: ${(e as Error).message}`, 'error');
         } finally {
             setActionLoading(null);
-            setSelectedApp(null);
+            setRejectingAppId(null);
             setRejectionReason('');
         }
     };
 
-    if (loading) {
+    const startReject = (appId: string) => {
+        setRejectingAppId(appId);
+        setRejectionReason('');
+    };
+
+    const cancelReject = () => {
+        setRejectingAppId(null);
+        setRejectionReason('');
+    };
+
+    const copyToClipboard = (text: string) => {
+        navigator.clipboard.writeText(text).then(() => {
+            addToast('Address copied to clipboard!', 'success');
+        }, (err) => {
+            addToast('Failed to copy address.', 'error');
+            console.error('Could not copy text: ', err);
+        });
+    };
+
+    if (loading && applications.length === 0) {
         return <div className="text-center"><span className="spinner-border"></span><p>Loading applications...</p></div>;
     }
 
@@ -105,78 +126,63 @@ const ApplicationReviewList = ({ provider, contract, contractName }: Application
             <div className="d-flex justify-content-between align-items-center mb-3">
                 <h5 className="mb-0">Pending Applications ({applications.length})</h5>
                 <button className="btn btn-sm btn-outline-secondary" onClick={fetchApplications} disabled={loading || !!actionLoading}>
-                    Refresh
+                    {loading ? <span className="spinner-border spinner-border-sm"></span> : 'Refresh'}
                 </button>
             </div>
             {applications.length === 0 ? (
                 <div className="alert alert-secondary">No pending applications.</div>
             ) : (
-                <div className="list-group">
+                <div className={`list-group ${loading ? 'opacity-50' : ''}`}>
                     {applications.map((app) => (
                         <div key={app.id} className="list-group-item list-group-item-action flex-column align-items-start">
                             <div className="d-flex w-100 justify-content-between">
                                 <h6 className="mb-1">ID: {app.id} - {app.type}</h6>
                                 <small>{new Date(app.timestamp * 1000).toLocaleString()}</small>
                             </div>
-                            <p className="mb-1"><small><strong>Applicant:</strong> {app.applicant}</small></p>
+                            <p className="mb-1"><small><strong>Applicant:</strong> {app.applicant}</small>
+                                <button onClick={() => copyToClipboard(app.applicant)} className="btn btn-link btn-sm p-0 ms-2" title="Copy Address">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-clipboard" viewBox="0 0 16 16"><path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/><path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zM-1 8a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H-0.5A.5.5 0 0 1-1 8z"/></svg>
+                                </button>
+                            </p>
                             <p className="mb-1"><strong>Details:</strong> {app.details}</p>
-                            <div className="mt-2">
-                                <button 
-                                    className="btn btn-success btn-sm me-2" 
-                                    onClick={() => handleApprove(app.id)}
-                                    disabled={!!actionLoading}
-                                >
-                                    {actionLoading === app.id ? <span className="spinner-border spinner-border-sm"></span> : 'Approve'}
-                                </button>
-                                <button 
-                                    className="btn btn-danger btn-sm" 
-                                    onClick={() => setSelectedApp(app)}
-                                    disabled={!!actionLoading}
-                                    data-bs-toggle="modal" 
-                                    data-bs-target="#rejectionModal"
-                                >
-                                    Reject
-                                </button>
-                            </div>
+                            
+                            {rejectingAppId === app.id ? (
+                                <div className="mt-2">
+                                    <textarea 
+                                        className="form-control form-control-sm mb-2" 
+                                        placeholder="Reason for rejection..."
+                                        value={rejectionReason}
+                                        onChange={(e) => setRejectionReason(e.target.value)}
+                                    />
+                                    <button className="btn btn-danger btn-sm me-2" onClick={handleReject} disabled={!rejectionReason || !!actionLoading}>
+                                        {actionLoading === app.id ? <span className="spinner-border spinner-border-sm"></span> : 'Confirm Reject'}
+                                    </button>
+                                    <button className="btn btn-secondary btn-sm" onClick={cancelReject} disabled={!!actionLoading}>
+                                        Cancel
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="mt-2">
+                                    <button 
+                                        className="btn btn-success btn-sm me-2" 
+                                        onClick={() => handleApprove(app.id)}
+                                        disabled={!!actionLoading}
+                                    >
+                                        {actionLoading === app.id ? <span className="spinner-border spinner-border-sm"></span> : 'Approve'}
+                                    </button>
+                                    <button 
+                                        className="btn btn-danger btn-sm" 
+                                        onClick={() => startReject(app.id)}
+                                        disabled={!!actionLoading}
+                                    >
+                                        Reject
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     ))}
                 </div>
             )}
-
-            {/* Rejection Modal */}
-            <div className="modal fade" id="rejectionModal" tabIndex={-1} aria-labelledby="rejectionModalLabel" aria-hidden="true">
-                <div className="modal-dialog">
-                    <div className="modal-content">
-                        <div className="modal-header">
-                            <h5 className="modal-title" id="rejectionModalLabel">Reject Application #{selectedApp?.id}</h5>
-                            <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close" onClick={() => setSelectedApp(null)}></button>
-                        </div>
-                        <div className="modal-body">
-                            <div className="mb-3">
-                                <label htmlFor="rejectionReason" className="form-label">Reason for Rejection</label>
-                                <textarea 
-                                    className="form-control" 
-                                    id="rejectionReason" 
-                                    rows={3}
-                                    value={rejectionReason}
-                                    onChange={(e) => setRejectionReason(e.target.value)}
-                                ></textarea>
-                            </div>
-                        </div>
-                        <div className="modal-footer">
-                            <button type="button" className="btn btn-secondary" data-bs-dismiss="modal" onClick={() => setSelectedApp(null)}>Cancel</button>
-                            <button 
-                                type="button" 
-                                className="btn btn-danger" 
-                                onClick={handleReject}
-                                disabled={!rejectionReason || !!actionLoading}
-                            >
-                                {actionLoading === selectedApp?.id ? <span className="spinner-border spinner-border-sm"></span> : 'Confirm Rejection'}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </>
     );
 };

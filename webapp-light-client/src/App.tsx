@@ -60,7 +60,13 @@ function App() {
     setIsLoading(true);
     try {
       const p = new ethers.BrowserProvider(window.ethereum);
+      
+      // Explicitly request permissions to encourage the wallet selection prompt
+      await p.send("wallet_requestPermissions", [{ eth_accounts: {} }]);
+
+      // Then, request the accounts
       const accs = await p.send("eth_requestAccounts", []);
+
       if (accs.length > 0) {
         setAccount(accs[0]);
         setProvider(p);
@@ -172,7 +178,7 @@ function App() {
         {!account ? (
           <LoginPage connectWallet={connectWallet} isLoading={isLoading} />
         ) : !isCorrectNetwork ? (
-          <div className="alert alert-danger"><strong>Wrong Network!</strong> Please connect to the Hardhat network (Chain ID: {HARDHAT_CHAIN_ID}).</div>
+          <div className="alert alert-danger"><strong>Wrong Network!</strong> Please connect to the Hardhat network (Chain ID: {GOCHAIN_TESTNET_CHAIN_ID}).</div>
         ) : isLoading ? (
           <p>Memuat data pengguna...</p>
         ) : (

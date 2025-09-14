@@ -35,7 +35,7 @@ const OfficerDashboard: React.FC<OfficerDashboardProps> = (props) => {
   const renderActiveTab = () => {
     switch (activeTab) {
       case 'admin':
-        return <AdminPanel provider={props.provider} rbacContract={props.rbacContract} />;
+        return <AdminPanel {...props} />;
       case 'dukcapil':
         return <DukcapilOfficerPanel provider={props.provider} dukcapilContract={props.dukcapilContract} />;
       case 'pendidikan':
