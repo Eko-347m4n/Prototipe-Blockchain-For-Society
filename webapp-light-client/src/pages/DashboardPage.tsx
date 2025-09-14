@@ -1,8 +1,7 @@
 import React from 'react';
 import { BrowserProvider, Contract } from 'ethers';
-import AdminPanel from '../components/AdminPanel';
-import OfficerPanel from '../components/OfficerPanel';
 import CitizenDashboard from '../components/CitizenDashboard';
+import OfficerDashboard from '../components/OfficerDashboard';
 
 interface DashboardPageProps {
   provider: BrowserProvider;
@@ -17,32 +16,22 @@ interface DashboardPageProps {
 }
 
 const DashboardPage: React.FC<DashboardPageProps> = (props) => {
-  const { 
-    provider, 
-    account, 
-    userRoles, 
-    rbacContract, 
-    identityContract, 
-    dukcapilContract, 
-    pendidikanContract, 
-    sosialContract, 
-    kesehatanContract 
-  } = props;
+  const { userRoles, account, identityContract } = props;
 
-  if (userRoles.isAdmin) return <AdminPanel provider={provider} rbacContract={rbacContract} />;
-  if (userRoles.isDukcapil) return <OfficerPanel provider={provider} contract={dukcapilContract} title="Dukcapil Officer Panel" actionName="updateCitizenData" fieldName="NIK" />;
-  if (userRoles.isPendidikan) return <OfficerPanel provider={provider} contract={pendidikanContract} title="Pendidikan Officer Panel" actionName="updateAcademicRecord" fieldName="Student ID" />;
-  if (userRoles.isSosial) return <OfficerPanel provider={provider} contract={sosialContract} title="Sosial Officer Panel" actionName="recordAidDistribution" fieldName="Beneficiary ID" />;
-  if (userRoles.isKesehatan) return <OfficerPanel provider={provider} contract={kesehatanContract} title="Kesehatan Officer Panel" actionName="recordBPJSValidation" fieldName="BPJS ID" />;
+  const isOfficer = userRoles.isAdmin || userRoles.isDukcapil || userRoles.isPendidikan || userRoles.isSosial || userRoles.isKesehatan;
+
+  if (isOfficer) {
+    return <OfficerDashboard {...props} />;
+  }
   
   return <CitizenDashboard 
-            provider={provider} 
+            provider={props.provider} 
             identityContract={identityContract} 
             userAddress={account} 
-            dukcapilContract={dukcapilContract}
-            pendidikanContract={pendidikanContract}
-            sosialContract={sosialContract}
-            kesehatanContract={kesehatanContract}
+            dukcapilContract={props.dukcapilContract}
+            pendidikanContract={props.pendidikanContract}
+            sosialContract={props.sosialContract}
+            kesehatanContract={props.kesehatanContract}
           />;
 };
 
