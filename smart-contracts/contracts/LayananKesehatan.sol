@@ -2,88 +2,100 @@
 pragma solidity ^0.8.24;
 
 import "./RBAC.sol";
+import "./Identity.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 
-/**
- * @title LayananKesehatan
- * @dev Contract for managing health services and BPJS validation, protected by RBAC.
- */
 contract LayananKesehatan {
+    using Strings for uint256;
+
     RBAC private _rbac;
+    Identity private _identity;
     bytes32 public constant KESEHATAN_ROLE = keccak256("KESEHATAN_ROLE");
 
-    // Mapping from BPJS ID to their validation data
-    mapping(string => string) private _bpjsValidationData;
+    enum Status { Pending, Approved, Rejected }
 
-    event BPJSValidated(string indexed bpjsId, string data, address indexed officer, uint timestamp);
-
-    /**
-     * @dev The constructor sets the address of the RBAC contract.
-     */
-    constructor(address rbacAddress) {
-        require(rbacAddress != address(0), "RBAC address cannot be zero");
-        _rbac = RBAC(rbacAddress);
+    struct Application {
+        address applicant;
+        string applicationType;
+        string applicationDetails;
+        uint256 timestamp;
+        Status status;
     }
 
-    /**
-     * @dev Modifier to check if the caller has the KESEHATAN_ROLE.
-     */
+    struct BpjsRecord {
+        string bpjsId;
+        string nik;
+        bool isValid;
+        string facility;
+    }
+
+    uint256 private _applicationCounter;
+    mapping(string => Application) public applications;
+    mapping(string => BpjsRecord) private _bpjsData;
+
+    event BPJSValidated(string indexed bpjsId, address indexed officer, uint timestamp);
+    event ApplicationSubmitted(string applicationId, address indexed applicant, string applicationType, uint256 timestamp);
+    event ApplicationApproved(string indexed applicationId, address indexed approver, uint timestamp);
+    event ApplicationRejected(string indexed applicationId, string reason, address indexed rejecter, uint timestamp);
+
+    constructor(address rbacAddress, address identityAddress) {
+        require(rbacAddress != address(0) && identityAddress != address(0), "Invalid addresses");
+        _rbac = RBAC(rbacAddress);
+        _identity = Identity(identityAddress);
+    }
+
     modifier onlyKesehatanOfficer() {
         require(_rbac.hasRole(KESEHATAN_ROLE, msg.sender), "Caller is not a Kesehatan officer");
         _;
     }
 
-    /**
-     * @dev A protected function that can only be called by a Kesehatan officer to record BPJS validation.
-     * @param _bpjsId The BPJS ID of the patient.
-     * @param _data The BPJS validation data to be recorded.
-     */
-    function recordBPJSValidation(string memory _bpjsId, string memory _data) external onlyKesehatanOfficer {
-        require(bytes(_bpjsId).length > 0, "BPJS ID cannot be empty");
-        _bpjsValidationData[_bpjsId] = _data;
-        emit BPJSValidated(_bpjsId, _data, msg.sender, block.timestamp);
-    }
-
-    /**
-     * @dev Returns the BPJS validation data for a given BPJS ID.
-     * @param _bpjsId The BPJS ID of the patient.
-     * @return The BPJS validation data associated with the BPJS ID.
-     */
-    function getBPJSValidation(string memory _bpjsId) public view returns (string memory) {
-        return _bpjsValidationData[_bpjsId];
-    }
-
-    event ApplicationSubmitted(address indexed applicant, string applicationType, string applicationDetails, uint timestamp);
-    event ApplicationApproved(string indexed applicationId, address indexed approver, uint timestamp);
-    event ApplicationRejected(string indexed applicationId, string reason, address indexed rejecter, uint timestamp);
-
-    /**
-     * @dev Allows a user to submit an application.
-     * @param _applicationType The type of application (e.g., "BPJS Claim", "Medical Record Request").
-     * @param _applicationDetails Details of the application.
-     */
     function submitApplication(string memory _applicationType, string memory _applicationDetails) external {
         require(bytes(_applicationType).length > 0, "Application type cannot be empty");
-        require(bytes(_applicationDetails).length > 0, "Application details cannot be empty");
-        emit ApplicationSubmitted(msg.sender, _applicationType, _applicationDetails, block.timestamp);
+        
+        _applicationCounter++;
+        string memory applicationId = _applicationCounter.toString();
+        
+        applications[applicationId] = Application({
+            applicant: msg.sender,
+            applicationType: _applicationType,
+            applicationDetails: _applicationDetails,
+            timestamp: block.timestamp,
+            status: Status.Pending
+        });
+
+        emit ApplicationSubmitted(applicationId, msg.sender, _applicationType, block.timestamp);
     }
 
-    /**
-     * @dev Allows a Kesehatan officer to approve an application.
-     * @param _applicationId A unique identifier for the application (e.g., transaction hash of submission).
-     */
     function approveApplication(string memory _applicationId) external onlyKesehatanOfficer {
-        require(bytes(_applicationId).length > 0, "Application ID cannot be empty");
+        Application storage app = applications[_applicationId];
+        require(app.applicant != address(0), "Application does not exist.");
+        require(app.status == Status.Pending, "Application not pending.");
+
+        app.status = Status.Approved;
         emit ApplicationApproved(_applicationId, msg.sender, block.timestamp);
     }
 
-    /**
-     * @dev Allows a Kesehatan officer to reject an application.
-     * @param _applicationId A unique identifier for the application.
-     * @param _reason The reason for rejection.
-     */
     function rejectApplication(string memory _applicationId, string memory _reason) external onlyKesehatanOfficer {
-        require(bytes(_applicationId).length > 0, "Application ID cannot be empty");
-        require(bytes(_reason).length > 0, "Reason for rejection cannot be empty");
+        Application storage app = applications[_applicationId];
+        require(app.applicant != address(0), "Application does not exist.");
+        require(app.status == Status.Pending, "Application not pending.");
+
+        app.status = Status.Rejected;
         emit ApplicationRejected(_applicationId, _reason, msg.sender, block.timestamp);
+    }
+
+    function recordBPJSValidation(string memory _bpjsId, string memory _nik, bool _isValid, string memory _facility) external onlyKesehatanOfficer {
+        require(_identity.getWallet(keccak256(abi.encodePacked(_nik))) != address(0), "NIK is not registered");
+        _bpjsData[_bpjsId] = BpjsRecord({
+            bpjsId: _bpjsId,
+            nik: _nik,
+            isValid: _isValid,
+            facility: _facility
+        });
+        emit BPJSValidated(_bpjsId, msg.sender, block.timestamp);
+    }
+
+    function getBPJSData(string memory _bpjsId) public view returns (BpjsRecord memory) {
+        return _bpjsData[_bpjsId];
     }
 }

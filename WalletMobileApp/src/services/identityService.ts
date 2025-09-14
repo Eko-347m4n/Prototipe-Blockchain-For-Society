@@ -5,8 +5,13 @@ import { authenticateBiometrics } from './biometricService';
 
 export const isWalletRegistered = async (walletAddress: string) => {
     try {
-        const provider = new ethers.JsonRpcProvider("http://localhost:8545");
+        const providerUrl = "http://10.0.2.2:8545"; // Use 10.0.2.2 for Android emulator to access host localhost
+        console.log("Provider URL:", providerUrl);
+        const provider = new ethers.JsonRpcProvider(providerUrl);
+        console.log("IDENTITY_CONTRACT_ADDRESS:", IDENTITY_CONTRACT_ADDRESS);
+        console.log("IDENTITY_CONTRACT_ABI:", IDENTITY_CONTRACT_ABI);
         const identityContract = new ethers.Contract(IDENTITY_CONTRACT_ADDRESS, IDENTITY_CONTRACT_ABI, provider);
+        console.log("Identity Contract Instance:", identityContract);
         const registered = await identityContract.isRegistered(walletAddress);
         return registered;
     } catch (e) {

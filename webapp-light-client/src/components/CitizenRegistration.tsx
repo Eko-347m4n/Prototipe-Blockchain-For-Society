@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { ethers, Contract, BrowserProvider } from 'ethers';
 import AppCard from './AppCard';
-import TransactionStatus from './TransactionStatus';
+import { useToast } from '../contexts/ToastContext';
 
 interface CitizenRegistrationProps {
     provider: BrowserProvider;
@@ -11,20 +11,25 @@ interface CitizenRegistrationProps {
 
 const CitizenRegistration = ({ provider, identityContract, setRegisteredHash }: CitizenRegistrationProps) => {
   const [nik, setNik] = useState('');
-  const [status, setStatus] = useState('');
+  const [loading, setLoading] = useState(false);
+  const { addToast } = useToast();
 
   const handleRegister = async () => {
     if (!nik || !identityContract) return;
-    setStatus('Registering identity...');
+    setLoading(true);
     try {
       const nikHash = ethers.keccak256(ethers.toUtf8Bytes(nik));
       const signer = await provider.getSigner();
       const contractWithSigner = identityContract.connect(signer);
       const tx = await contractWithSigner.registerIdentity(nikHash);
       await tx.wait();
-      setStatus('Identity registered successfully!');
+      addToast('Identity registered successfully!', 'success');
       setRegisteredHash(nikHash);
-    } catch (e) { setStatus(`Error: ${(e as Error).message}`); }
+    } catch (e) { 
+      addToast(`Error: ${(e as Error).message}`, 'error');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -34,8 +39,16 @@ const CitizenRegistration = ({ provider, identityContract, setRegisteredHash }: 
         <label htmlFor="nikInput" className="form-label">NIK (National ID Number)</label>
         <input id="nikInput" type="text" className="form-control" value={nik} onChange={(e) => setNik(e.target.value)} />
       </div>
-      <button onClick={handleRegister} className="btn btn-primary">Register Identity</button>
-      <TransactionStatus status={status} />
+      <button onClick={handleRegister} className="btn btn-primary" disabled={loading}>
+        {loading ? (
+          <>
+            <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+            {' '}Registering...
+          </>
+        ) : (
+          'Register Identity'
+        )}
+      </button>
     </AppCard>
   );
 }

@@ -3,20 +3,14 @@ import { buildApprovedNamespaces, getSdkError } from '@walletconnect/utils';
 import { SessionTypes } from '@walletconnect/types';
 import { ethers } from 'ethers';
 import { Alert } from 'react-native';
-
-const WALLETCONNECT_PROJECT_ID = '2b7cf7d30c3f53be019f73f09cddaa56'; // <<< REPLACE WITH YOUR PROJECT ID
+import { WALLETCONNECT_PROJECT_ID } from '@env'; // Import from @env
 
 let web3wallet: Web3Wallet | undefined;
 let core: Core | undefined;
 
 export const initWalletConnect = async (onSessionProposal: (proposal: SessionTypes.Proposal) => void, onSessionRequest: (request: SessionTypes.Request) => void) => {
     try {
-        core = new Core({
-            projectId: WALLETCONNECT_PROJECT_ID,
-        });
-
         web3wallet = await Web3Wallet.init({
-            core,
             projectId: WALLETCONNECT_PROJECT_ID,
             metadata: {
                 name: 'Prototipe Web3 Kabupaten Wallet',
@@ -25,6 +19,7 @@ export const initWalletConnect = async (onSessionProposal: (proposal: SessionTyp
                 icons: ['https://walletconnect.com/walletconnect-logo.png'],
             },
         });
+        core = web3wallet.core;
 
         web3wallet.on('session_proposal', onSessionProposal);
         web3wallet.on('session_request', onSessionRequest);
