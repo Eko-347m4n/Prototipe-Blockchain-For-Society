@@ -1,9 +1,9 @@
 import React from 'react';
 
 const AppCard = ({ title, children }: { title: string, children: React.ReactNode }) => (
-  <div className="card mb-4 shadow-sm">
+  <div className="card mb-4">
     <div className="card-header">
-      <h4 className="my-0 fw-normal">{title}</h4>
+      <h5 className="my-0">{title}</h5>
     </div>
     <div className="card-body">{children}</div>
   </div>
