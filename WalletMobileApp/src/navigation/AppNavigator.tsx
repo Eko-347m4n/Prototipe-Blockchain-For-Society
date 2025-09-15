@@ -3,6 +3,8 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import LoginScreen from '../screens/LoginScreen';
 import DashboardScreen from '../screens/DashboardScreen';
+import RegistrationScreen from '../screens/RegistrationScreen';
+import MnemonicScreen from '../screens/MnemonicScreen'; // Import MnemonicScreen
 import * as WalletService from '../services/walletService';
 import { ethers } from 'ethers';
 import { View, ActivityIndicator } from 'react-native';
@@ -22,6 +24,13 @@ const AppNavigator = () => {
     load();
   }, []);
 
+  const handleLogout = async () => {
+    setLoading(true);
+    await WalletService.deleteWallet();
+    setWallet(null);
+    setLoading(false);
+  };
+
   if (loading) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -32,15 +41,25 @@ const AppNavigator = () => {
 
   return (
     <NavigationContainer>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Navigator>
         {wallet ? (
+          // If wallet exists, go to Dashboard
           <Stack.Screen name="Dashboard">
-            {(props) => <DashboardScreen {...props} wallet={wallet} onLogout={() => setWallet(null)} />}
+            {(props) => <DashboardScreen {...props} wallet={wallet} onLogout={handleLogout} />}
           </Stack.Screen>
         ) : (
-          <Stack.Screen name="Login">
-            {(props) => <LoginScreen {...props} onLogin={(newWallet) => setWallet(newWallet)} />}
-          </Stack.Screen>
+          // If no wallet, show Login and Registration screens
+          <>
+            <Stack.Screen name="Login">
+              {(props) => <LoginScreen {...props} onLogin={(newWallet) => setWallet(newWallet)} />}
+            </Stack.Screen>
+            <Stack.Screen name="Register" options={{ headerTitle: 'New Identity Registration' }}>
+              {(props) => <RegistrationScreen {...props} onRegistrationSuccess={(newWallet) => setWallet(newWallet)} />}
+            </Stack.Screen>
+            <Stack.Screen name="Mnemonic" options={{ headerTitle: 'Backup Recovery Phrase' }}>
+              {(props) => <MnemonicScreen {...props} />}
+            </Stack.Screen>
+          </>
         )}
       </Stack.Navigator>
     </NavigationContainer>

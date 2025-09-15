@@ -3,7 +3,9 @@ import { buildApprovedNamespaces, getSdkError } from '@walletconnect/utils';
 import { SessionTypes } from '@walletconnect/types';
 import { ethers } from 'ethers';
 import { Alert } from 'react-native';
-import { WALLETCONNECT_PROJECT_ID } from '@env'; // Import from @env
+import { WALLETCONNECT_PROJECT_ID } from '@env';
+import { verifyWalletPin } from './pinService'; // Import pinService
+import { authenticateBiometrics } from './biometricService'; // Import biometricService
 
 let web3wallet: Web3Wallet | undefined;
 let core: Core | undefined;
@@ -95,6 +97,15 @@ export const rejectSession = async (sessionProposal: SessionTypes.Proposal) => {
 export const approveRequest = async (sessionRequest: SessionTypes.Request, wallet: ethers.Wallet) => {
     if (!sessionRequest || !wallet || !web3wallet) return;
 
+    // --- PIN/Biometric Authentication --- 
+    const authenticated = await authenticateBiometrics('Authenticate to approve transaction');
+    if (!authenticated) {
+      Alert.alert('Authentication Required', 'Biometric authentication failed or cancelled.');
+      // Reject the request if authentication fails
+      await rejectRequest(sessionRequest);
+      return;
+    }
+
     try {
         const { topic, id, params } = sessionRequest;
         const { request } = params;
@@ -108,6 +119,7 @@ export const approveRequest = async (sessionRequest: SessionTypes.Request, walle
             result = await wallet.signTransaction(tx);
         } else {
             Alert.alert('Error', `Unsupported method: ${request.method}`);
+            await rejectRequest(sessionRequest); // Reject unsupported methods
             return;
         }
 
@@ -122,6 +134,7 @@ export const approveRequest = async (sessionRequest: SessionTypes.Request, walle
     } catch (e) {
         console.error("Error approving request:", e);
         Alert.alert('Error', 'Failed to approve request.');
+        await rejectRequest(sessionRequest); // Reject on error
     }
 };
 

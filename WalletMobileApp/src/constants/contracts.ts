@@ -1,139 +1,902 @@
-import {
-    NEXT_PUBLIC_IDENTITY_CONTRACT_ADDRESS,
-    NEXT_PUBLIC_RBAC_CONTRACT_ADDRESS,
-    NEXT_PUBLIC_DUKCAPIL_CONTRACT_ADDRESS,
-    NEXT_PUBLIC_PENDIDIKAN_CONTRACT_ADDRESS,
-    NEXT_PUBLIC_SOSIAL_CONTRACT_ADDRESS,
-    NEXT_PUBLIC_KESEHATAN_CONTRACT_ADDRESS
-} from '@env';
+import { PROVIDER_URL as ENV_PROVIDER_URL } from '@env';
 
-export const IDENTITY_CONTRACT_ADDRESS = NEXT_PUBLIC_IDENTITY_CONTRACT_ADDRESS;
-export const RBAC_CONTRACT_ADDRESS = NEXT_PUBLIC_RBAC_CONTRACT_ADDRESS;
-export const DUKCAPIL_CONTRACT_ADDRESS = NEXT_PUBLIC_DUKCAPIL_CONTRACT_ADDRESS;
-export const PENDIDIKAN_CONTRACT_ADDRESS = NEXT_PUBLIC_PENDIDIKAN_CONTRACT_ADDRESS;
-export const SOSIAL_CONTRACT_ADDRESS = NEXT_PUBLIC_SOSIAL_CONTRACT_ADDRESS;
-export const KESEHATAN_CONTRACT_ADDRESS = NEXT_PUBLIC_KESEHATAN_CONTRACT_ADDRESS;
+export const PROVIDER_URL = ENV_PROVIDER_URL;
 
-export const IDENTITY_CONTRACT_ABI = [
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "wallet",
-        "type": "address"
-      },
-      {
-        "indexed": true,
-        "internalType": "bytes32",
-        "name": "identityHash",
-        "type": "bytes32"
-      }
-    ],
-    "name": "IdentityRegistered",
-    "type": "event"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "wallet",
-        "type": "address"
-      }
-    ],
-    "name": "getIdentity",
-    "outputs": [
-      {
-        "internalType": "bytes32",
-        "name": "",
-        "type": "bytes32"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "identityHash",
-        "type": "bytes32"
-      }
-    ],
-    "name": "getWallet",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "wallet",
-        "type": "address"
-      }
-    ],
-    "name": "isRegistered",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "identityHash",
-        "type": "bytes32"
-      }
-    ],
-    "name": "registerIdentity",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  }
+// Deployed contract addresses on Sepolia
+export const RBAC_CONTRACT_ADDRESS = '0x2352975Bf6699b4d11A188f9052f21cB477C502C';
+export const IDENTITY_CONTRACT_ADDRESS = '0xfc6C10F6df4e6015b78c3E5BaFF643270829717b';
+export const DUKCAPIL_CONTRACT_ADDRESS = '0x9ce5889688FeA7209D58c123D74D2c3b4CeF5073';
+export const PENDIDIKAN_CONTRACT_ADDRESS = '0x5BAE7A1cD8891dfB2756Bad2b7ebdF88320a22A9';
+export const SOSIAL_CONTRACT_ADDRESS = '0xE678692372693aB6F54BD7B7ca357393e346B738';
+export const KESEHATAN_CONTRACT_ADDRESS = '0x33b7A623F4f1ad40016b3b2751533f510f6447E2';
+
+// Contract ABIs
+export const RBAC_ABI = [
+    {
+      "inputs": [],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "inputs": [],
+      "name": "AccessControlBadConfirmation",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "neededRole",
+          "type": "bytes32"
+        }
+      ],
+      "name": "AccessControlUnauthorizedAccount",
+      "type": "error"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "role",
+          "type": "bytes32"
+        },
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "previousAdminRole",
+          "type": "bytes32"
+        },
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "newAdminRole",
+          "type": "bytes32"
+        }
+      ],
+      "name": "RoleAdminChanged",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "role",
+          "type": "bytes32"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "sender",
+          "type": "address"
+        }
+      ],
+      "name": "RoleGranted",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "role",
+          "type": "bytes32"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "sender",
+          "type": "address"
+        }
+      ],
+      "name": "RoleRevoked",
+      "type": "event"
+    },
+    {
+      "inputs": [],
+      "name": "ADMIN_ROLE",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "DEFAULT_ADMIN_ROLE",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "DUKCAPIL_ROLE",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "KESEHATAN_ROLE",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "PENDIDIKAN_ROLE",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "SOSIAL_ROLE",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "role",
+          "type": "bytes32"
+        }
+      ],
+      "name": "getRoleAdmin",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "role",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        }
+      ],
+      "name": "grantRole",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "role",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        }
+      ],
+      "name": "hasRole",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "role",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "address",
+          "name": "callerConfirmation",
+          "type": "address"
+        }
+      ],
+      "name": "renounceRole",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "role",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        }
+      ],
+      "name": "revokeRole",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes4",
+          "name": "interfaceId",
+          "type": "bytes4"
+        }
+      ],
+      "name": "supportsInterface",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
 ];
 
-export const RBAC_CONTRACT_ABI = [
-  "function ADMIN_ROLE() view returns (bytes32)",
-  "function DUKCAPIL_ROLE() view returns (bytes32)",
-  "function PENDIDIKAN_ROLE() view returns (bytes32)",
-  "function SOSIAL_ROLE() view returns (bytes32)",
-  "function KESEHATAN_ROLE() view returns (bytes32)",
-  "function hasRole(bytes32 role, address account) view returns (bool)",
-  "function grantRole(bytes32 role, address account)",
-  "function revokeRole(bytes32 role, address account)",
+export const IDENTITY_ABI = [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_rbacAddress",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "wallet",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "identityHash",
+          "type": "bytes32"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "admin",
+          "type": "address"
+        }
+      ],
+      "name": "IdentityRegistered",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "identityHash",
+          "type": "bytes32"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "verifier",
+          "type": "address"
+        }
+      ],
+      "name": "IdentityVerified",
+      "type": "event"
+    },
+    {
+      "inputs": [],
+      "name": "ADMIN_ROLE",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_wallet",
+          "type": "address"
+        }
+      ],
+      "name": "getIdentity",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "_identityHash",
+          "type": "bytes32"
+        }
+      ],
+      "name": "getWallet",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_wallet",
+          "type": "address"
+        }
+      ],
+      "name": "isRegistered",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "_identityHash",
+          "type": "bytes32"
+        }
+      ],
+      "name": "isVerified",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_wallet",
+          "type": "address"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "_identityHash",
+          "type": "bytes32"
+        }
+      ],
+      "name": "registerIdentity",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "_identityHash",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bool",
+          "name": "_status",
+          "type": "bool"
+        }
+      ],
+      "name": "setVerifiedStatus",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
 ];
 
-export const DUKCAPIL_CONTRACT_ABI = [
-    "function updateCitizenData(string memory _nik, string memory _data)",
-    "function getCitizenData(string memory _nik) view returns (string memory)",
-    "function submitApplication(string memory _applicationType, string memory _applicationDetails)",
-    "function approveApplication(string memory _applicationId)",
-    "function rejectApplication(string memory _applicationId, string memory _reason)",
-    "event ApplicationSubmitted(address indexed applicant, string applicationType, string applicationDetails, uint timestamp)",
-    "event ApplicationApproved(string indexed applicationId, address indexed approver, uint timestamp)",
-    "event ApplicationRejected(string indexed applicationId, string reason, address indexed rejecter, uint timestamp)",
-];
-
-export const PENDIDIKAN_CONTRACT_ABI = [
+export const DUKCAPIL_ABI = [
     {
       "inputs": [
         {
           "internalType": "address",
           "name": "rbacAddress",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "identityAddress",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "string",
+          "name": "applicationId",
+          "type": "string"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "approver",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "timestamp",
+          "type": "uint256"
+        }
+      ],
+      "name": "ApplicationApproved",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "string",
+          "name": "applicationId",
+          "type": "string"
+        },
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "reason",
+          "type": "string"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "rejecter",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "timestamp",
+          "type": "uint256"
+        }
+      ],
+      "name": "ApplicationRejected",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "applicationId",
+          "type": "string"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "applicant",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "applicationType",
+          "type": "string"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "timestamp",
+          "type": "uint256"
+        }
+      ],
+      "name": "ApplicationSubmitted",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "string",
+          "name": "nik",
+          "type": "string"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "officer",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "timestamp",
+          "type": "uint256"
+        }
+      ],
+      "name": "CitizenDataUpdated",
+      "type": "event"
+    },
+    {
+      "inputs": [],
+      "name": "DUKCAPIL_ROLE",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "",
+          "type": "string"
+        }
+      ],
+      "name": "applications",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "applicant",
+          "type": "address"
+        },
+        {
+          "internalType": "string",
+          "name": "applicationType",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "applicationDetails",
+          "type": "string"
+        },
+        {
+          "internalType": "uint256",
+          "name": "timestamp",
+          "type": "uint256"
+        },
+        {
+          "internalType": "enum LayananDukcapil.Status",
+          "name": "status",
+          "type": "uint8"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "_applicationId",
+          "type": "string"
+        }
+      ],
+      "name": "approveApplication",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "",
+          "type": "string"
+        }
+      ],
+      "name": "citizenData",
+      "outputs": [
+        {
+          "internalType": "string",
+          "name": "nik",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "dob",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "addr",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "maritalStatus",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "economicStatus",
+          "type": "string"
+        },
+        {
+          "internalType": "bool",
+          "name": "active",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "_nik",
+          "type": "string"
+        }
+      ],
+      "name": "getCitizenData",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "string",
+              "name": "nik",
+              "type": "string"
+            },
+            {
+              "internalType": "string",
+              "name": "name",
+              "type": "string"
+            },
+            {
+              "internalType": "string",
+              "name": "dob",
+              "type": "string"
+            },
+            {
+              "internalType": "string",
+              "name": "addr",
+              "type": "string"
+            },
+            {
+              "internalType": "string",
+              "name": "maritalStatus",
+              "type": "string"
+            },
+            {
+              "internalType": "string",
+              "name": "economicStatus",
+              "type": "string"
+            },
+            {
+              "internalType": "bool",
+              "name": "active",
+              "type": "bool"
+            }
+          ],
+          "internalType": "struct LayananDukcapil.Citizen",
+          "name": "",
+          "type": "tuple"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "_nik",
+          "type": "string"
+        }
+      ],
+      "name": "isNikRegistered",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "_applicationId",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "_reason",
+          "type": "string"
+        }
+      ],
+      "name": "rejectApplication",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "_applicationType",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "_applicationDetails",
+          "type": "string"
+        }
+      ],
+      "name": "submitApplication",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "_nik",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "_name",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "_dob",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "_address",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "_maritalStatus",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "_economicStatus",
+          "type": "string"
+        }
+      ],
+      "name": "updateCitizenData",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+];
+
+export const PENDIDIKAN_ABI = [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "rbacAddress",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "identityAddress",
           "type": "address"
         }
       ],
@@ -147,12 +910,6 @@ export const PENDIDIKAN_CONTRACT_ABI = [
           "indexed": true,
           "internalType": "string",
           "name": "studentId",
-          "type": "string"
-        },
-        {
-          "indexed": false,
-          "internalType": "string",
-          "name": "data",
           "type": "string"
         },
         {
@@ -231,6 +988,12 @@ export const PENDIDIKAN_CONTRACT_ABI = [
       "anonymous": false,
       "inputs": [
         {
+          "indexed": false,
+          "internalType": "string",
+          "name": "applicationId",
+          "type": "string"
+        },
+        {
           "indexed": true,
           "internalType": "address",
           "name": "applicant",
@@ -240,12 +1003,6 @@ export const PENDIDIKAN_CONTRACT_ABI = [
           "indexed": false,
           "internalType": "string",
           "name": "applicationType",
-          "type": "string"
-        },
-        {
-          "indexed": false,
-          "internalType": "string",
-          "name": "applicationDetails",
           "type": "string"
         },
         {
@@ -275,6 +1032,45 @@ export const PENDIDIKAN_CONTRACT_ABI = [
       "inputs": [
         {
           "internalType": "string",
+          "name": "",
+          "type": "string"
+        }
+      ],
+      "name": "applications",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "applicant",
+          "type": "address"
+        },
+        {
+          "internalType": "string",
+          "name": "applicationType",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "applicationDetails",
+          "type": "string"
+        },
+        {
+          "internalType": "uint256",
+          "name": "timestamp",
+          "type": "uint256"
+        },
+        {
+          "internalType": "enum LayananPendidikan.Status",
+          "name": "status",
+          "type": "uint8"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
           "name": "_applicationId",
           "type": "string"
         }
@@ -295,9 +1091,36 @@ export const PENDIDIKAN_CONTRACT_ABI = [
       "name": "getAcademicRecord",
       "outputs": [
         {
-          "internalType": "string",
+          "components": [
+            {
+              "internalType": "string",
+              "name": "studentId",
+              "type": "string"
+            },
+            {
+              "internalType": "string",
+              "name": "nik",
+              "type": "string"
+            },
+            {
+              "internalType": "string",
+              "name": "school",
+              "type": "string"
+            },
+            {
+              "internalType": "string",
+              "name": "grade",
+              "type": "string"
+            },
+            {
+              "internalType": "bool",
+              "name": "isScholarshipRecipient",
+              "type": "bool"
+            }
+          ],
+          "internalType": "struct LayananPendidikan.StudentRecord",
           "name": "",
-          "type": "string"
+          "type": "tuple"
         }
       ],
       "stateMutability": "view",
@@ -348,7 +1171,17 @@ export const PENDIDIKAN_CONTRACT_ABI = [
         },
         {
           "internalType": "string",
-          "name": "_data",
+          "name": "_nik",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "_school",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "_grade",
           "type": "string"
         }
       ],
@@ -357,14 +1190,24 @@ export const PENDIDIKAN_CONTRACT_ABI = [
       "stateMutability": "nonpayable",
       "type": "function"
     }
-  ];
+];
 
-export const SOSIAL_CONTRACT_ABI = [
+export const SOSIAL_ABI = [
     {
       "inputs": [
         {
           "internalType": "address",
           "name": "rbacAddress",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "identityAddress",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "dukcapilAddress",
           "type": "address"
         }
       ],
@@ -381,12 +1224,6 @@ export const SOSIAL_CONTRACT_ABI = [
           "type": "string"
         },
         {
-          "indexed": false,
-          "internalType": "string",
-          "name": "data",
-          "type": "string"
-        },
-        {
           "indexed": true,
           "internalType": "address",
           "name": "officer",
@@ -399,7 +1236,7 @@ export const SOSIAL_CONTRACT_ABI = [
           "type": "uint256"
         }
       ],
-      "name": "AidDistributed",
+      "name": "AidRecorded",
       "type": "event"
     },
     {
@@ -462,6 +1299,12 @@ export const SOSIAL_CONTRACT_ABI = [
       "anonymous": false,
       "inputs": [
         {
+          "indexed": false,
+          "internalType": "string",
+          "name": "applicationId",
+          "type": "string"
+        },
+        {
           "indexed": true,
           "internalType": "address",
           "name": "applicant",
@@ -471,12 +1314,6 @@ export const SOSIAL_CONTRACT_ABI = [
           "indexed": false,
           "internalType": "string",
           "name": "applicationType",
-          "type": "string"
-        },
-        {
-          "indexed": false,
-          "internalType": "string",
-          "name": "applicationDetails",
           "type": "string"
         },
         {
@@ -506,6 +1343,45 @@ export const SOSIAL_CONTRACT_ABI = [
       "inputs": [
         {
           "internalType": "string",
+          "name": "",
+          "type": "string"
+        }
+      ],
+      "name": "applications",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "applicant",
+          "type": "address"
+        },
+        {
+          "internalType": "string",
+          "name": "applicationType",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "applicationDetails",
+          "type": "string"
+        },
+        {
+          "internalType": "uint256",
+          "name": "timestamp",
+          "type": "uint256"
+        },
+        {
+          "internalType": "enum LayananSosial.Status",
+          "name": "status",
+          "type": "uint8"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
           "name": "_applicationId",
           "type": "string"
         }
@@ -523,12 +1399,34 @@ export const SOSIAL_CONTRACT_ABI = [
           "type": "string"
         }
       ],
-      "name": "getAidDistribution",
+      "name": "getAidRecord",
       "outputs": [
         {
-          "internalType": "string",
+          "components": [
+            {
+              "internalType": "string",
+              "name": "beneficiaryId",
+              "type": "string"
+            },
+            {
+              "internalType": "string",
+              "name": "aidType",
+              "type": "string"
+            },
+            {
+              "internalType": "string",
+              "name": "status",
+              "type": "string"
+            },
+            {
+              "internalType": "uint256",
+              "name": "amount",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct LayananSosial.AidRecord",
           "name": "",
-          "type": "string"
+          "type": "tuple"
         }
       ],
       "stateMutability": "view",
@@ -543,8 +1441,18 @@ export const SOSIAL_CONTRACT_ABI = [
         },
         {
           "internalType": "string",
-          "name": "_data",
+          "name": "_aidType",
           "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "_status",
+          "type": "string"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_amount",
+          "type": "uint256"
         }
       ],
       "name": "recordAidDistribution",
@@ -588,14 +1496,19 @@ export const SOSIAL_CONTRACT_ABI = [
       "stateMutability": "nonpayable",
       "type": "function"
     }
-  ];
+];
 
-export const KESEHATAN_CONTRACT_ABI = [
+export const KESEHATAN_ABI = [
     {
       "inputs": [
         {
           "internalType": "address",
           "name": "rbacAddress",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "identityAddress",
           "type": "address"
         }
       ],
@@ -662,6 +1575,12 @@ export const KESEHATAN_CONTRACT_ABI = [
       "anonymous": false,
       "inputs": [
         {
+          "indexed": false,
+          "internalType": "string",
+          "name": "applicationId",
+          "type": "string"
+        },
+        {
           "indexed": true,
           "internalType": "address",
           "name": "applicant",
@@ -671,12 +1590,6 @@ export const KESEHATAN_CONTRACT_ABI = [
           "indexed": false,
           "internalType": "string",
           "name": "applicationType",
-          "type": "string"
-        },
-        {
-          "indexed": false,
-          "internalType": "string",
-          "name": "applicationDetails",
           "type": "string"
         },
         {
@@ -696,12 +1609,6 @@ export const KESEHATAN_CONTRACT_ABI = [
           "indexed": true,
           "internalType": "string",
           "name": "bpjsId",
-          "type": "string"
-        },
-        {
-          "indexed": false,
-          "internalType": "string",
-          "name": "data",
           "type": "string"
         },
         {
@@ -737,6 +1644,45 @@ export const KESEHATAN_CONTRACT_ABI = [
       "inputs": [
         {
           "internalType": "string",
+          "name": "",
+          "type": "string"
+        }
+      ],
+      "name": "applications",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "applicant",
+          "type": "address"
+        },
+        {
+          "internalType": "string",
+          "name": "applicationType",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "applicationDetails",
+          "type": "string"
+        },
+        {
+          "internalType": "uint256",
+          "name": "timestamp",
+          "type": "uint256"
+        },
+        {
+          "internalType": "enum LayananKesehatan.Status",
+          "name": "status",
+          "type": "uint8"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
           "name": "_applicationId",
           "type": "string"
         }
@@ -754,12 +1700,34 @@ export const KESEHATAN_CONTRACT_ABI = [
           "type": "string"
         }
       ],
-      "name": "getBPJSValidation",
+      "name": "getBPJSData",
       "outputs": [
         {
-          "internalType": "string",
+          "components": [
+            {
+              "internalType": "string",
+              "name": "bpjsId",
+              "type": "string"
+            },
+            {
+              "internalType": "string",
+              "name": "nik",
+              "type": "string"
+            },
+            {
+              "internalType": "bool",
+              "name": "isValid",
+              "type": "bool"
+            },
+            {
+              "internalType": "string",
+              "name": "facility",
+              "type": "string"
+            }
+          ],
+          "internalType": "struct LayananKesehatan.BpjsRecord",
           "name": "",
-          "type": "string"
+          "type": "tuple"
         }
       ],
       "stateMutability": "view",
@@ -774,7 +1742,17 @@ export const KESEHATAN_CONTRACT_ABI = [
         },
         {
           "internalType": "string",
-          "name": "_data",
+          "name": "_nik",
+          "type": "string"
+        },
+        {
+          "internalType": "bool",
+          "name": "_isValid",
+          "type": "bool"
+        },
+        {
+          "internalType": "string",
+          "name": "_facility",
           "type": "string"
         }
       ],
@@ -819,4 +1797,4 @@ export const KESEHATAN_CONTRACT_ABI = [
       "stateMutability": "nonpayable",
       "type": "function"
     }
-  ];
+];
