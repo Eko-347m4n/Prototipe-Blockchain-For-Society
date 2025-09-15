@@ -5,25 +5,30 @@
     "smart_contract": "Ethereum Sepolia (Solidity)",
     "webapps_light_client": "React.js",
     "library_web3": ["ethers.js", "web3.js"],
-    "wallet_connectivity": ["WalletConnect", "Deep Linking", "In-App Browser", "Embedded WebView"]
+    "wallet_connectivity": ["WalletConnect v2", "Deep Linking", "In-App Browser", "Embedded WebView"]
   },
   "components": {
     "1_wallet_mobile_apps": {
       "description": "Aplikasi mobile sebagai identitas digital & signer transaksi",
       "tasks": [
-        "Registrasi warga (NIK, nama, tanggal lahir, alamat, nomor HP/email → generate wallet).",
-        "Registrasi petugas dinas/kecamatan/desa (NIP/ID, jabatan, unit kerja, nomor HP/email → generate wallet).",
-        "Generate & simpan private key secara lokal (local storage/secure enclave di HP, bukan server).",
-        "Fitur tanda tangan transaksi (approve permohonan, submit data, revoke/grant role).",
-        "Fitur keamanan (PIN, biometrik).",
+        "Registrasi warga (NIK, nama, tanggal lahir, alamat, nomor HP/email) → lakukan verifikasi muka (liveness) on-device sebelum generate wallet.",
+        "Registrasi petugas dinas/kecamatan/desa (NIP/ID, jabatan, unit kerja, nomor HP/email) → verifikasi identitas dan role oleh admin → generate wallet.",
+        "Jika verifikasi valid → generate wallet address, 12-word mnemonic (seed phrase), dan private key.",
+        "Simpan private key secara lokal: iOS gunakan Keychain + Secure Enclave, Android gunakan Android Keystore + StrongBox bila ada. Terapkan enkripsi tambahan dengan PIN-derived key. Tidak ada private key/seed yang dikirim ke server.",
+        "Tampilkan mnemonic (seed phrase) sekali untuk backup manual oleh pengguna; arahkan langkah aman penyimpanan.",
+        "Fitur tanda tangan transaksi (wallet meminta PIN/biometrik sebelum signing) — transaksi dikirim dari webapps ke wallet via WalletConnect v2 / Deep Linking / Embedded WebView.",
+        "Fitur keamanan (PIN, biometrik) dengan proteksi akses ulang sebelum exposure sensitive data.",
         "Untuk warga umum → gunakan Deep Linking/In-App Browser agar portal terbuka langsung di wallet mobile, tanpa QR scan.",
-        "Untuk petugas/admin → gunakan embedded WebView dalam aplikasi wallet React Native, sehingga portal dapat berjalan di dalam wallet dan transaksi ditandatangani tanpa switch aplikasi."
+        "Untuk petugas/admin → gunakan embedded WebView dalam aplikasi wallet React Native, sehingga portal dapat berjalan di dalam wallet dan transaksi ditandatangani tanpa switch aplikasi.",
+        "Face verification wajib memakai liveness detection secara on-device; hanya simpan flag verifikasi dan metadata minimal; jangan simpan gambar wajah mentah di server.",
+        "Setelah wallet dibuat dan verifikasi selesai → panggil smart contract identitas untuk mapping wallet ↔ NIK/NIP (on-chain) dan tandai status verifikasi pada record identitas."
       ]
     },
     "2_smart_contract": {
       "description": "Smart contract untuk otorisasi & layanan publik",
       "tasks": [
         "Smart Contract Identitas → mapping wallet dengan NIK/NIP.",
+        "Sediakan fungsi registerIdentity(nik, walletAddress, verificationHash) yang hanya dapat dipanggil oleh trusted backend atau melalui on-chain proof.",
         "Smart Contract RBAC → grant/revoke role petugas dinas/kecamatan/desa.",
         "Smart Contract Layanan per dinas:",
         " - Dukcapil → data kependudukan.",
@@ -56,7 +61,7 @@
     },
     "5_alur_kerja": {
       "registrasi": [
-        "Warga → mobile wallet (NIK, data diri).",
+        "Warga → mobile wallet (NIK, data diri, face verification on-device).",
         "Petugas → mobile wallet (NIP + role dari admin via smart contract)."
       ],
       "login_transaksi": [
@@ -80,7 +85,7 @@
       ]
     },
     "6_deliverables": {
-      "mobile_wallet_app": "React Native app untuk warga & petugas (register, tanda tangan transaksi, embedded portal).",
+      "mobile_wallet_app": "React Native app untuk warga & petugas (register, face verification, tanda tangan transaksi, embedded portal).",
       "webapps_portal": "React.js light client untuk dashboard layanan & integrasi dinas.",
       "smart_contracts": "Solidity contracts untuk identitas, RBAC, dan layanan dinas.",
       "blockchain_infra": "Full node + RPC infra di kabupaten/dinas, light client via webapp.",

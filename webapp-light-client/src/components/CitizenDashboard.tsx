@@ -49,6 +49,11 @@ const CitizenDashboard = (props: CitizenDashboardProps) => {
   const [activeTab, setActiveTab] = useState('new'); // 'new' or 'history'
   const [historyKey, setHistoryKey] = useState(0); // Add a key to force re-renders
 
+  // State for Send ETH form
+  const [recipientAddress, setRecipientAddress] = useState('');
+  const [amount, setAmount] = useState('');
+  const [sendingEth, setSendingEth] = useState(false);
+
   const contracts = useMemo(() => [
       { name: 'Dukcapil', contract: dukcapilContract },
       { name: 'Pendidikan', contract: pendidikanContract },
@@ -93,6 +98,31 @@ const CitizenDashboard = (props: CitizenDashboardProps) => {
     }
   };
 
+  const handleSendEth = async () => {
+    if (!recipientAddress || !amount) {
+      addToast('Please enter recipient address and amount.', 'error');
+      return;
+    }
+
+    setSendingEth(true);
+    try {
+      const signer = await provider.getSigner();
+      const tx = await signer.sendTransaction({
+        to: recipientAddress,
+        value: ethers.parseEther(amount),
+      });
+      await tx.wait();
+      addToast(`Successfully sent ${amount} ETH to ${recipientAddress}`, 'success');
+      setRecipientAddress('');
+      setAmount('');
+    } catch (e) {
+      console.error("Error sending ETH:", e);
+      addToast(`Error sending ETH: ${(e as Error).message}`, 'error');
+    } finally {
+      setSendingEth(false);
+    }
+  };
+
   const truncateHash = (hash: string) => `${hash.substring(0, 10)}...${hash.substring(hash.length - 8)}`;
 
   if (!registeredHash) return <CitizenRegistration provider={provider} identityContract={identityContract} setRegisteredHash={setRegisteredHash} />;
@@ -101,6 +131,45 @@ const CitizenDashboard = (props: CitizenDashboardProps) => {
     <>
       <p className="mb-4">Welcome! Your identity hash is: <small className="text-muted d-block" title={registeredHash}>{truncateHash(registeredHash)}</small></p>
       
+      {/* Send ETH Section */}
+      <AppCard title="Send ETH (Test WalletConnect)">
+        <fieldset disabled={sendingEth}>
+          <div className="mb-3">
+            <label htmlFor="recipientAddress" className="form-label">Recipient Address</label>
+            <input 
+              type="text" 
+              className="form-control" 
+              id="recipientAddress" 
+              value={recipientAddress} 
+              onChange={(e) => setRecipientAddress(e.target.value)} 
+              placeholder="0x..." 
+            />
+          </div>
+          <div className="mb-3">
+            <label htmlFor="amount" className="form-label">Amount (ETH)</label>
+            <input 
+              type="number" 
+              className="form-control" 
+              id="amount" 
+              value={amount} 
+              onChange={(e) => setAmount(e.target.value)} 
+              placeholder="0.01" 
+              step="any"
+            />
+          </div>
+          <button onClick={handleSendEth} className="btn btn-warning" disabled={sendingEth || !recipientAddress || !amount}>
+            {sendingEth ? (
+                <>
+                    <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    {' '}Sending...
+                </>
+            ) : (
+                'Send ETH'
+            )}
+          </button>
+        </fieldset>
+      </AppCard>
+
       <ul className="nav nav-tabs mb-3">
         <li className="nav-item">
           <button className={`nav-link ${activeTab === 'new' ? 'active' : ''}`} onClick={() => setActiveTab('new')}>

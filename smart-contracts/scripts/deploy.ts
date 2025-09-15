@@ -3,17 +3,21 @@ import { ethers } from "hardhat";
 async function main() {
   console.log("Deploying contracts...");
 
-  const identity = await ethers.deployContract("Identity");
-  await identity.waitForDeployment();
-  console.log(`Identity contract deployed to: ${identity.target}`);
-
+  // 1. Deploy RBAC first, as Identity depends on it.
   const rbac = await ethers.deployContract("RBAC");
   await rbac.waitForDeployment();
   console.log(`RBAC contract deployed to: ${rbac.target}`);
 
   const rbacAddress = rbac.target;
+
+  // 2. Deploy Identity, passing the RBAC contract address to its constructor.
+  const identity = await ethers.deployContract("Identity", [rbacAddress]);
+  await identity.waitForDeployment();
+  console.log(`Identity contract deployed to: ${identity.target}`);
+
   const identityAddress = identity.target;
 
+  // 3. Deploy service contracts that depend on RBAC and Identity.
   const layananDukcapil = await ethers.deployContract("LayananDukcapil", [rbacAddress, identityAddress]);
   await layananDukcapil.waitForDeployment();
   console.log(`LayananDukcapil contract deployed to: ${layananDukcapil.target}`);

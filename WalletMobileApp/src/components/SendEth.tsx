@@ -64,7 +64,7 @@ const SendEth: React.FC<SendEthProps> = ({ wallet }) => {
         placeholder="Amount (ETH)"
         keyboardType="numeric"
       />
-      <Button title={loading ? 'Sending...' : 'Send ETH'} onPress={handleSend} disabled={loading} />
+      <Button testID="send-eth-button" title={loading ? 'Sending...' : 'Send ETH'} onPress={handleSend} disabled={loading} />
     </View>
   );
 };
